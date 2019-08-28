@@ -1,0 +1,476 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>MERCAT interactive</title>
+    <meta name="description" content="Molecular Epidemiological Research made easy with this Collection of Analytical Tools">
+    <meta name="author" content="N Vaudagnotto, AG Street, RZ Aandahl, AR Francis, and MM Tanaka" >
+    <link href="img/mercat.ico" rel="shortcut icon">
+    <link href="img/mercat.png" rel="apple-touch-icon">
+    <meta content="MERCAT interactive" property="og:title">
+    <meta content="MERCAT interactive" property="og:site_name">
+<!--     <meta content="http://mercat.emi.unsw.edu.au/" property="og:url">
+    <meta content="http://mercat.emi.unsw.edu.au/img/mercat.png" property="og:image">
+    <meta content="http://mercat.emi.unsw.edu.au/img/spoligomonteserin.png" property="og:image"> -->
+
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet" media="screen">
+    <link href="css/spol2.css" rel="stylesheet">
+    <link href="css/spectrum.css" rel="stylesheet">
+    <!--<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>-->
+    <script src="js/d3/d3.v3.min.js" charset="utf-8"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+    <script src="js/spectrum/spectrum.js"></script>
+
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-55942566-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+    <script>
+
+    // Comment all the stuff below out once the variables have been checked in other files    
+    uploadInfo = window.location.search.replace("?","");
+    fileStem = parseInt(uploadInfo);
+    fullFileStem = fileStem;
+    rootFileStem = parseInt(fileStem/1000);
+    smefUploaded = false;
+    smefAnalysed = false;
+    // fileStem refers to the start of the filename where all the output files can be found
+    // for the demo data, it is a string
+    // it is a number like 1234 if a file has been uploaded but no analysis performed
+    // and three digits are appended, eg. 1234001, if analysis has been done on an uploaded file
+    // fullFileStem is the same, except for the upload-only case, in which case it is 1234000.
+    // rootFileStem is the part without the analysis code, e.g. 1234.
+    if (fileStem>=0) {
+        smefUploaded = true;
+        dataPath = 'userdata/';
+        if (fileStem%1000>0) {
+            smefAnalysed = true;
+        } else {
+            fileStem = fileStem/1000;
+        }
+    } else {
+        dataPath = 'data/';
+        fileStem = 'monteserin';
+        fullFileStem = fileStem;
+        rootFileStem = fileStem;
+    }
+    fileStem = 'nores';
+    // sampleSmef = 'data/monteserin.smef'; // used as a link on the about tab, if other data has been loaded already
+    // errorSuffix = '-err.txt';
+    // funcsSuffix = '-funcs.txt';
+    // filenameSuffix = '-filename.txt';
+    // abSuffix = '-ab.txt';
+    // paramNamesSuffix = '-params.txt';
+    // forestSuffix = '-forest';
+    // mstSuffix = '-mst';
+    // nodesSuffix = '-vertices.csv';
+    // linksSuffix = '-edges.csv';
+    // dataSuffix = '-smef.txt';
+    // summarySuffix = '-summary.txt';
+    // resplotSuffix = '-resplot.pdf';
+    // respairplotSuffix = '-respairplot.pdf';
+    // drawspolSuffix = '-drawspol.pdf';
+    // plotmlvaSuffix = '-mlvaplot.pdf';
+
+
+    // vars used by both force diagrams
+    var antibioticNames;
+    var labelColor = "#666";
+    var minWidth = 360,
+        minHeight = 460,
+        width = 900,
+        height = 600,
+        minDR = 12,
+        maxDR = 30,
+        minMSTR = 12,
+        maxMSTR = 30,
+        gap,  // filled in from the form later
+        mstGap,
+        defaultLinkLength = 50, // spoligoforest
+        linkGap = 1,
+        arrowWidth = 5,
+        arrowHeight = 6;
+    </script>
+</head>
+<body>
+    <div class="spol2">
+        <div class="header">
+            <div>
+                <img src="img/mercat.png" class="pull-left" style="height:88px; padding: 0 20px 0 20px;">
+                <div class="pull-left">
+                    <h1>MERCAT <span style="font-weight:100">interactive</span></h1>
+                    <p>A collection of analytical tools for molecular epidemiological research</p>
+                </div>
+                <div class="spacer"></div>
+            </div>
+        </div>
+        <br />
+        <pre><span id="filename"></span></pre>
+        <div class="tabbable">
+          <ul class="nav nav-tabs">
+            <li class="active"><a href="#about-tab" data-toggle="tab">About</a></li>
+            <li><a href="#upload-tab" data-toggle="tab">Upload</a></li>
+            <li class="hidden"><a href="#summary-tab" data-toggle="tab">Summary</a></li>
+            <li class="hidden"><a href="#data-tab" data-toggle="tab">Data</a></li>
+            <li class="hidden"><a href="#forest-tab" data-toggle="tab">Spoligoforest</a></li>
+            <li class="hidden"><a href="#tree-tab" data-toggle="tab">Minimum Spanning Tree</a></li>
+            <li class="hidden"><a href="#resplot-tab" data-toggle="tab">Resistance Frequency</a></li>
+            <li class="hidden"><a href="#respairplot-tab" data-toggle="tab">Resistance Correlation</a></li>
+            <li class="hidden"><a href="#drawspol-tab" data-toggle="tab">Spoligotype Plot</a></li>
+            <li class="hidden"><a href="#plotmlva-tab" data-toggle="tab">MLVA Plot</a></li>
+          </ul>
+          <div class="tab-content spoltab">
+            <div class="tab-pane" id="about-tab">
+                <div class="contained">
+                  <h3>Overview</h3>
+                  <p>MERCAT is the Molecular Epidemiology Researcher's Collection of Analytical Tools.</p>
+                  <p>These tools are designed to analyse and visualise molecular data 
+                    from bacterial isolates.</p>
+                  <p>For example it can be used to investigate spoligotypes and multi-locus VNTR data 
+                    from <i>Mycobacterium tuberculosis</i>. It can also be used to visualise multiple drug resistance data.</p>
+                  <p>
+                  MERCAT expands and improves on an earlier online utility called spolTools, 
+                  which was limited to spoligotypes from <i>M. tuberculosis</i>.
+                  Improvements include:</p>
+                  <ul>
+                    <li>visualisation of a range of genetic markers (eg. spoligotypes, VNTRs) from any bacteria</li>
+                    <li>incorporation of antibiotic resistance data</li>
+                    <li>a minimum spanning tree depicting relationships among isolates</li>
+                    <li>a variety of frequency plots.</li>
+                  </ul>
+		  <p>
+		  We provide MERCAT as a free resource and there is no warranty for this service either express or implied.  
+		  </p>
+		  
+<!-- 		  <h4>R package</h4> 
+		  Mercat can  be installed as <a href="mercat.tar.gz"> a package</a> for the statistical analysis environment R (see <a href="README-installation.txt">installation instructions</a> and the <a href="mercat-manual.pdf">manual for the package</a>).  -->
+		
+                  <h3>Usage</h3>
+                  <p>When you first start MERCAT interactive you will find a sample data set preloaded for you. The input format for the data set is known as Simple Molecular Epidemiology Format (SMEF).
+                </p>
+                  <p>To analyse your data, write it up as a SMEF file, 
+                    and <a href="#" class="goto-upload">upload</a> it. On the upload page we include some additional example data sets and documentation describing the SMEF format.</p>
+
+                  <h3>Credits</h3>
+                  <p>The MERCAT team is RZ Aandahl, N Vaudagnotto, S Bhatia, AG Street, AR Francis, and MM Tanaka. 
+                    MERCAT interactive was developed by AG Street and RZ Aandahl.</p>
+                  <p>spolTools was designed by C Tang, JF Reyes, F Luciani, AR Francis, and MM Tanaka.</p>
+
+                  <h3>References</h3>
+                  <p>Aandahl RZ, Bhatia S, Vaudagnotto N, Street AG, Francis AR, Tanaka MM. MERCAT: Visualising molecular epidemiology data combining genetic markers and drug resistance profiles. In preparation.</p>
+                  <p>Reyes JF, Francis AR, Tanaka MM. Models of deletion for visualizing bacterial variation: an application to tuberculosis spoligotypes. <i>BMC Bioinformatics</i>. 2008 Nov 27;9:496. doi: 10.1186/1471-2105-9-496.</p>
+                  <p>Tang C, Reyes JF, Luciani F, Francis AR, and Tanaka MM. spolTools: online utilities for analyzing spoligotypes of the Mycobacterium tuberculosis complex. <i>Bioinformatics</i>. 2008 Oct 15;24(20):2414-5. Epub 2008 Aug 18.</p>
+
+                </div>
+            </div>
+            <div class="tab-pane" id="upload-tab">
+                <div class="contained display">
+                    <div class="hide alert alert-success" id="R-upload-success">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        Your file has been successfully uploaded. Click the analyse button to continue.
+                    </div>
+                    <div class="hide alert alert-error" id="R-error-alert">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <h4>There's been a problem</h4><p />
+                        <pre id="R-error-msg"></pre>
+                    </div>
+                    <form id="upload-form" method="post" action="analyse.php" enctype="multipart/form-data">
+                        <input type="hidden" id="stem" name="stem" value="" />
+                        <h3>Upload and Analyse</h3>
+                        <p>To analyse your own
+                            <code id="smef-popover" style="cursor:pointer" data-toggle="popover" title="" data-html="true" data-content="Simple Molecular Epidemiology Format (SMEF) is a text file format for sharing molecular epidemiological data (including spoligotypes, MLVA and resistance data), which is used to enter genetic data into MERCAT." data-original-title='<b>Simple Molecular Epidemiology Format</b><button type="button" class="close" onclick="dismissPopovers()" aria-hidden="true">&times;</button>'>SMEF</code> 
+                            or
+                            <code id="rsf-popover" style="cursor:pointer" data-toggle="popover" title="" data-html="true" data-content="RSF is a legacy format used by spolTools. For new data, please use SMEF." data-original-title='<b>Rich Spoligotype Format</b><button type="button" class="close" onclick="dismissPopovers()" aria-hidden="true">&times;</button>'>RSF</code> 
+                            file, please click the 'Browse...' button:
+                        </p>
+                        <!-- <p><input type="file" id="file" name="file" /></p> -->
+                        <p>{{ uiOutput("button_file") }}</p>
+                        <div></div>
+                        <p>{{ uiOutput("upload_error") }}</p>
+                        <!-- The commented code shows how you can separate the upload and analyse steps to add extra analyse params -->
+                        <!-- <p> <input type="submit" id="upload-button" name="upload-button" value="Upload" class="btn" /> </p>-->
+                        <!-- <h3 class="newsection">Analyse</h3>
+                        <div><span>Example:</span><input id="slider-dummy" type="range" min="1" max="10" oninput=""/><span class="slider-value" id="value-dummy"></span></div> -->
+                        <!-- <input type="submit" id="analyse-button" name="analyse-button" value="Analyse" class="btn btn-primary" /> -->
+                        
+                        <p style="margin-top:30px">Or click <a href="/">here</a> to return to the analysis of the demo data set (Monteserin et al, 2013), or follow these links to obtain example SMEF files:</p>
+						<p style="margin-top:30px"><a href="./data-examples/Monteserin.smef" download>Monteserin et al, 2013</a></p>
+                        <p style="margin-top:30px"><a href="./data-examples/Octavia.smef" download>Octavia et al, 2015</a></p>
+						<p style="margin-top:30px"><a href="./data-examples/Taype.smef" download>Taype et al, 2012 </a></p>
+						<p style="margin-top:30px"><a href="./data-examples/Kibiki.smef" download>Kibiki et al, 2007</a></p>
+						<p style="margin-top:30px"><a href="./data-examples/Diguimbaye.smef" download>Diguimbaye et al, 2006 </a></p>
+                    </form>
+                </div>
+                <div class="contained display">
+                    <p>{{ uiOutput("smef_doc") }}</p>
+                    <p></p>
+                </div>
+            </div>
+            <div class="tab-pane active" id="forest-tab">
+                <div class="pull-left">
+                    <div class="viz-info">
+                        <h2>Spoligoforest</h2>
+                        <span class="pop-link" id="forest-popover" style="cursor:pointer" data-toggle="popover" data-placement="right bottom" title="" data-html="true" data-content="This figure shows a possible evolutionary history of tuberculosis found in 100 patients in Bolivia, <a href='http://www.ncbi.nlm.nih.gov/pubmed/23603419' alt='Genotypes of Mycobacterium tuberculosis in patients at risk of drug resistance in Bolivia' target='_blank'>published in 2013</a>. Each set of rings represents a single genotype of tuberculosis; the circle size is related to the number of patients with that type in the sample. 
+                        Connections are shown where there has been a single mutation event. Note that the lengths of arrows are not proportional to distance.
+                        <br>The figure also shows resistance to common antibiotics. The same genotype of tuberculosis can vary in its resistance, so this is shown as concentric rings.<br>The result is a &quot;forest&quot;, not a single tree, because not all strains are closely related. The term &quot;spoligo&quot; relates to some of the genetic markers used (&quot;spoligotypes&quot;). 
+                        <br><br>For more, see <a href='http://www.biomedcentral.com/1471-2105/9/496' target='_blank' alt='Models of deletion for visualizing bacterial variation: an application to tuberculosis spoligotypes'>this paper</a>." data-original-title='<b>What does this show?</b><button type="button" class="close" onclick="dismissPopovers()" aria-hidden="true">&times;</button>'>What does this show?</span>
+                    </div>
+                    <div id="forest-viz" class="viz">
+                    </div>
+                    <div class="help subviz">
+                        Drag nodes to move and lock into place. Click again to unlock. 
+                    </div>
+                </div>
+                <div class="control-panel">
+                    <div id="forest-display" class="display">
+                        <h3>Data</h3>
+                        <b>{{ uiOutput("spolforest_file_name") }}</b>
+                        <h3>Display</h3>
+                        <div id="color-S-div"><span>Sensitive</span> <input type='color' id='color-S' class='basic' value='#31a354' /></div>
+                        <div id="color-R-div"><span>Resistant</span> <input type='color' id='color-R' class='basic' value='#e6550d' /></div>
+                        <div id="color-unknown-div"><span id="color-unknown-name">Unknown</span> <input type='color' id='color-unknown' class='basic' value='#6baed6' /></div>
+                        <div><span>Lines</span> <input type='color' id='color-link' class='basic' value='#BDBDBD' /></div>
+                        <div><span>Inner</span><input id="slider-innerR" type="range" min="10" max="20" value="15" oninput="changeForestNodeAppearance('slider-innerR','value-innerR')"/><span class="slider-value" id="value-innerR"></span></div>
+                        <div><span>Outer</span><input id="slider-outerR" type="range" min="16" max="50" value="33" oninput="changeForestNodeAppearance('slider-outerR','value-outerR')"/><span class="slider-value" id="value-outerR"></span></div>
+                        <div><span>Gap</span><input id="slider-gap" type="range" min="1" max="5" value="3" oninput="changeForestNodeAppearance('slider-gap','value-gap')"/><span class="slider-value" id="value-gap"></span></div>
+                        <div><span>Charge</span><input id="slider-charge" type="range" min="-1000" max="-20" value="-150" oninput="changeForestNodeAppearance('slider-charge','value-charge')"/><span class="slider-value" id="value-charge"></span></div>
+                        <label onclick="setMinInnerR()"><input id="show-node-labels" name="show-node-labels" type="checkbox" checked /> Show node identifiers?</label>
+                        <div class="buttons">
+                            <button class="btn" onclick="fixForestInOriginalPos()">Hierarchy</button>
+                            <button class="btn" onclick="shakeUpForest()">Shake</button>
+                        </div>
+                        <div class="buttons">
+                            <div style="height:2px"></div>
+                            <h3>Download</h3>
+                            <button class="btn" onclick="downloadSvg('#forest-viz')">Download SVG</button>
+                            <span class="pop-link" id="svg-popover" style="cursor:pointer" data-toggle="popover" data-placement="top" title="" data-html="true" data-content="SVG is a text-based format for images, based on XML. Images saved as SVG should look good when scaled to any size, and can be opened in most internet browsers. To convert to PDF, open the downloaded file in your browser and print it to PDF." data-original-title='<b>Scalable Vector Graphics (SVG)</b><button type="button" class="close" onclick="dismissPopovers()" aria-hidden="true">&times;</button>'>What is SVG?</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="spacer"></div>
+                <div id="node-numbering-info" class="subviz pull-left"></div>
+            </div>
+            <div class="tab-pane" id="tree-tab">
+                <div class="pull-left">
+                    <div class="viz-info">
+                        <h2>Minimum Spanning Tree</h2>
+                        <span class="pop-link" id="mst-popover" style="cursor:pointer" data-toggle="popover" data-placement="right bottom" title="" data-html="true" data-content="This figure is another way to show the relationships between strains of tuberculosis found in 100 patients in Bolivia, <a href='http://www.ncbi.nlm.nih.gov/pubmed/23603419' alt='Genotypes of Mycobacterium tuberculosis in patients at risk of drug resistance in Bolivia' target='_blank'>published in 2013</a>. It includes more genotype markers than  the spoligoforest, but does not show direction. The numbers on the edges show weighted genetic distance; the lower the number, the closer the relationship. The Minimum Spanning Tree is the tree with the lowest possible total of these numbers, but is not always unique. Note that the lengths of edges are not proportional to distance." data-original-title='<b>What does this show?</b><button type="button" class="close" onclick="dismissPopovers()" aria-hidden="true">&times;</button>'>What does this show?</span>
+                    </div>
+                    <div id="mst-viz" class="viz">
+                    </div>
+                    <div class="help">
+                        Drag nodes to move and lock into place. Click again to unlock. 
+                    </div>
+                </div>
+                <div class="control-panel">
+                    <div id="mst-display" class="display">
+                        <h3>Data</h3>
+                        <b>{{ uiOutput("mst_file_name") }}</b>
+                        <h3>Display</h3>
+                        <div id="color-MST-S-div"><span>Sensitive</span> <input type='color' id='color-MST-S' class='basic' value='#31a354' /></div>
+                        <div id="color-MST-R-div"><span>Resistant</span> <input type='color' id='color-MST-R' class='basic' value='#e6550d' /></div>
+                        <div id="color-MST-unknown-div" id="color-MST-unknown-name"><span>Unknown</span> <input type='color' id='color-MST-unknown' class='basic' value='#6baed6' /></div>
+                        <div><span>Lines</span> <input type='color' id='color-MST-link' class='basic' value='#BDBDBD' /></div>
+                        <div><span>Inner</span><input id="slider-MST-innerR" type="range" min="10" max="20" value="13" oninput="changeMSTNodeAppearance('slider-MST-innerR','value-MST-innerR')"/><span class="slider-value" id="value-MST-innerR"></span></div>
+                        <div><span>Outer</span><input id="slider-MST-size" type="range" min="16" max="50" value="26" oninput="changeMSTNodeAppearance('slider-MST-size','value-MST-size')"/><span class="slider-value" id="value-MST-size"></span></div>
+                        <div><span>Gap</span><input id="slider-MST-gap" type="range" min="1" max="5" value="3" oninput="changeMSTNodeAppearance('slider-MST-gap','value-MST-gap')"/><span class="slider-value" id="value-MST-gap"></span></div>
+                        <div><span>Separation</span><input id="slider-MST-length" type="range" min="60" max="180" value="130" oninput="changeMSTNodeAppearance('slider-MST-length','value-MST-length')" onchange="shakeUpMST()"/><span class="slider-value" id="value-MST-length"></span></div>
+                        <div><span>Charge</span><input id="slider-MST-charge" type="range" min="-1000" max="-20" value="-150" oninput="changeMSTNodeAppearance('slider-MST-charge','value-MST-charge')"/><span class="slider-value" id="value-MST-charge"></span></div>
+                        <label onclick="setMSTMinInnerR()"><input id="show-MST-node-labels" name="show-MST-node-labels" type="checkbox" checked /> Show node identifiers?</label>
+                        <!-- <div><span>Thickness</span><input id="slider-MST-thickness" type="range" min="1" max="20" oninput="changeMSTNodeAppearance('slider-MST-thickness','value-MST-thickness')" /><span class="slider-value" id="value-MST-thickness"></span></div> -->
+                        <div class="buttons">
+                            <!-- <button class="btn" onclick="fixMSTInOriginalPos()">Hierarchy</button> -->
+                            <button class="btn" onclick="shakeUpMST()">Shake</button>
+                        </div>
+                        <div class="buttons">
+                            <div style="height:2px"></div>
+                            <h3>Download</h3>
+                            <button class="btn" onclick="downloadSvg('#mst-viz')">Download SVG</button>
+                            <span class="pop-link" id="svg-popover2" style="cursor:pointer" data-toggle="popover" data-placement="top" title="" data-html="true" data-content="SVG is a text-based format for images, based on XML. Images saved as SVG should look good when scaled to any size, and can be opened in most internet browsers. Online tools (eg. <a href='http://www.fileformat.info/convert/image/svg2pdf.htm'>FileFormat.info</a>) are available to convert SVG to PDF." data-original-title='<b>Scalable Vector Graphics (SVG)</b><button type="button" class="close" onclick="dismissPopovers()" aria-hidden="true">&times;</button>'>What is SVG?</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="spacer"></div>
+                <div id="MST-node-numbering-info" class="subviz pull-left"></div>
+            </div>
+            <div class="tab-pane" id="summary-tab">
+                <pre> {{ verbatimTextOutput("smef_summary") }} </pre>
+              <!-- <pre id="summary">No summary available.</pre> -->                
+            </div>
+            <div class="tab-pane" id="data-tab">
+                <pre> {{ verbatimTextOutput("smef_data") }} <pre>
+              <!-- <pre id="smefdata">No data uploaded.</pre> -->
+            </div>
+            <div class="tab-pane" id="resplot-tab">
+                <div class="pull-left">
+                    <div class="viz-info">
+                        <h2>Resistance Frequency</h2>
+                        <span class="pop-link" id="resfreq-popover" style="cursor:pointer" data-toggle="popover" data-placement="right bottom" title="" data-html="true" data-content="This figure shows the frequency of antibiotic drug resistance from strains of tuberculosis found in 100 patients in Bolivia, <a href='http://www.ncbi.nlm.nih.gov/pubmed/23603419' alt='Genotypes of Mycobacterium tuberculosis in patients at risk of drug resistance in Bolivia' target='_blank'>published in 2013</a>. The pattern shows whether strains are susceptible (S) or resistant (R) to Streptomycin (STM), Isoniazid (INH), Rifampicin (RMP), Ethambutol (EMB) and Pyrazinamide (PZA)." data-original-title='<b>What does this show?</b><button type="button" class="close" onclick="dismissPopovers()" aria-hidden="true">&times;</button>'>What does this show?</span>
+                    </div>
+                    <div class="contained-rplot">
+                        {{ uiOutput("res_freq_ui") }}
+                    </div>
+                    <!-- <p><a href="#" download>Click here</a> to download the PDF file.</p> -->
+                </div>
+                <div class="control-panel">
+                    <div id="resplot-display" class="display">
+                        <h3>Data</h3>
+                        <b>{{ uiOutput("res_freq_file_name") }}</b>
+                        <h3>Display</h3>
+                        <div id="color-resfreq-div"><span>Bar colour</span> <input type='color' id='color-resfreq' class='basic' value='#54278F' /></div>
+                        <label onclick="setResBarOrderBy()"><input id="show-resbar-order" name="show-resbar-order" type="checkbox" checked /> Order by names?</label>
+                        <label onclick="setResBarRevOrder()"><input id="show-resbar-rev" name="show-resbar-rev" type="checkbox" /> Reverse order?</label>
+                        <label onclick="setResBarFlip()"><input id="show-resbar-flip" name="show-resbar-flip" type="checkbox" checked /> Flip plot?</label>
+                        <label onclick="setResBarLegend()"><input id="show-resbar-legend" name="show-resbar-legend" type="checkbox" checked /> Show legend?</label>
+                        <div><span>Leg X</span><input id="slider-resbar-legx" type="range" min="1" max="10" value="8" oninput="changeResBarLeg('slider-resbar-legx','value-resbar-legx')"/><span class="slider-value" id="value-resbar-legx"></span></div>
+                        <div><span>Leg Y</span><input id="slider-resbar-legy" type="range" min="1" max="10" value="5" oninput="changeResBarLeg('slider-resbar-legy','value-resbar-legy')"/><span class="slider-value" id="value-resbar-legy"></span></div>
+                        <div class="buttons">
+                            <div style="height:2px"></div>
+                            <h3>Download</h3>
+                            {{ uiOutput("res_freq_download_ui") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="spacer"></div>
+                <div id="resplot-node-numbering-info" class="subviz pull-left"></div>
+            </div>
+            <div class="tab-pane" id="respairplot-tab">
+                <div class="pull-left">
+                    <div class="viz-info">
+                        <h2>Resistance Correlation</h2>
+                        <span class="pop-link" id="resld-popover" style="cursor:pointer" data-toggle="popover" data-placement="right bottom" title="" data-html="true" data-content="This figure shows the association with antibiotic drugs with respect to frequency for strains of tuberculosis found in 100 patients in Bolivia, <a href='http://www.ncbi.nlm.nih.gov/pubmed/23603419' alt='Genotypes of Mycobacterium tuberculosis in patients at risk of drug resistance in Bolivia' target='_blank'>published in 2013</a>. The correlation between drugs A and B is given by r<sup>2</sup> = (p<sub>AB</sub> - p<sub>A</sub>p<sub>B</sub>)<sup>2</sup> / p<sub>A</sub>(1-p<sub>A</sub>)p<sub>B</sub>(1-p<sub>B</sub>)  where p<sub>AB</sub> is the joint resistance between A and B and p<sub>A</sub> is the marginal resistance to drug A." data-original-title='<b>What does this show?</b><button type="button" class="close" onclick="dismissPopovers()" aria-hidden="true">&times;</button>'>What does this show?</span>
+                    </div>
+                    <div class="contained-rplot">
+                        {{ uiOutput("res_cor_ui") }}
+                    </div>
+                   <!--  <p><a href="#" download>Click here</a> to download the PDF file.</p> -->
+                </div>
+                <div class="control-panel">
+                    <div id="resld-display" class="display">
+                        <h3>Data</h3>
+                        <b>{{ uiOutput("res_cor_file_name") }}</b>
+                        <h3>Display</h3>
+                        <div id="color-resld-high-div"><span>High colour</span> <input type='color' id='color-resld_high' class='basic' value='#54278F' /></div>
+                        <div id="color-resld-low-div"><span>Low colour</span> <input type='color' id='color-resld_low' class='basic' value='#FFFFFF' /></div>
+                        <label onclick="setResCorValues()"><input id="show-resld-values" name="show-resld-values" type="checkbox" checked /> Show values?</label>
+                        <label onclick="setResCorLegend()"><input id="show-resld-legend" name="show-resld-legend" type="checkbox" /> Show legend?</label>
+                        <label onclick="setResCorSym()"><input id="show-resld-sym" name="show-resld-sym" type="checkbox" /> Symmetric?</label>
+                        <div class="buttons">
+                            <div style="height:2px"></div>
+                            <h3>Download</h3>
+                            {{ uiOutput("res_ld_download_ui") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="spacer"></div>
+                <div id="resld-node-numbering-info" class="subviz pull-left"></div>
+            </div>
+            <div class="tab-pane" id="drawspol-tab">
+               <div class="pull-left">
+                    <div class="viz-info">
+                        <h2>Spoligotype Plot</h2>
+                        <span class="pop-link" id="spolfreq-popover" style="cursor:pointer" data-toggle="popover" data-placement="right bottom" title="" data-html="true" data-content="This figure shows the distribution of genotyped strains of tuberculosis found in 100 patients in Bolivia, <a href='http://www.ncbi.nlm.nih.gov/pubmed/23603419' alt='Genotypes of Mycobacterium tuberculosis in patients at risk of drug resistance in Bolivia' target='_blank'>published in 2013</a>. Spoligiotyping is a PCR based technique that genotypes tuberculosis strains based on the presence or absence of repeats located at a highly polymorphic direct repeat locus." data-original-title='<b>What does this show?</b><button type="button" class="close" onclick="dismissPopovers()" aria-hidden="true">&times;</button>'>What does this show?</span>
+                    </div>
+                    <div class="contained-rplot">
+                        {{ uiOutput("spol_freq_ui") }}
+                    </div>
+                    <!-- <p><a href="#" download>Click here</a> to download the PDF file.</p> -->
+                </div>
+                <div class="control-panel">
+                    <div id="spolfreq-display" class="display">
+                        <h3>Data</h3>
+                        <b>{{ uiOutput("spol_freq_file_name") }}</b>
+                        <h3>Display</h3>
+                        <div id="color-spolfreq-high-div"><span>High colour</span> <input type='color' id='color-spolfreq_high' class='basic' value='#54278F' /></div>
+                        <div id="color-spolfreq-low-div"><span>Low colour</span> <input type='color' id='color-spolfreq_low' class='basic' value='#FFFFFF' /></div>
+                        <div class="buttons">
+                            <div style="height:2px"></div>
+                            <h3>Download</h3>
+                            {{ uiOutput("spol_freq_download_ui") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="spacer"></div>
+                <div id="spolfreq-node-numbering-info" class="subviz pull-left"></div>
+            </div>
+            <div class="tab-pane" id="plotmlva-tab">
+               <div class="pull-left">
+                    <div class="viz-info">
+                        <h2>MLVA Frequency</h2>
+                        <span class="pop-link" id="mlvafreq-popover" style="cursor:pointer" data-toggle="popover" data-placement="right bottom" title="" data-html="true" data-content="This figure shows the distribution of genotyped strains of tuberculosis found in 100 patients in Bolivia, <a href='http://www.ncbi.nlm.nih.gov/pubmed/23603419' alt='Genotypes of Mycobacterium tuberculosis in patients at risk of drug resistance in Bolivia' target='_blank'>published in 2013</a>. Multiple-Locus Variable number tandem repeat Analysis (MLVA) is a PCR based technique that genotypes tuberculosis strains based on the number of tandem repeated DNA sequences across a set of Variable Number Tandem Repeat (VNTR) loci." data-original-title='<b>What does this show?</b><button type="button" class="close" onclick="dismissPopovers()" aria-hidden="true">&times;</button>'>What does this show?</span>
+                    </div>
+                    <div class="contained-rplot">
+                        {{ uiOutput("mlva_freq_ui") }}
+                    </div>
+                    <!-- <p><a href="#" download>Click here</a> to download the PDF file.</p> -->
+                </div>
+                <div class="control-panel">
+                    <div id="mlvafreq-display" class="display">
+                        <h3>Data</h3>
+                        <b>{{ uiOutput("mlva_freq_file_name") }}</b>
+                        <h3>Display</h3>
+                        <div id="color-mlvafreq-high-div"><span>High colour</span> <input type='color' id='color-mlvafreq_high' class='basic' value='#54278F' /></div>
+                        <div id="color-mlvafreq-low-div"><span>Low colour</span> <input type='color' id='color-mlvafreq_low' class='basic' value='#FFFFFF' /></div>
+                        <label onclick="setMLVAFreqValues()"><input id="show-mlvafreq-values" name="show-mlvafreq-values" type="checkbox" checked /> Show values?</label>
+                        <label onclick="setMLVAFreqLegend()"><input id="show-mlvafreq-legend" name="show-mlvafreq-legend" type="checkbox" /> Show legend?</label>
+                        <div class="buttons">
+                            <div style="height:2px"></div>
+                            <h3>Download</h3>
+                            {{ uiOutput("mlva_freq_download_ui") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="spacer"></div>
+                <div id="mlvafreq-node-numbering-info" class="subviz pull-left"></div>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+<!--         <p>
+            <a href="http://tanakalab.unsw.edu.au/">Tanaka Lab</a> |
+            <a href="http://www.eerc.unsw.edu.au/">EERC</a> |
+            <a href="http://www.babs.unsw.edu.au">BABS</a> |
+            <a href="http://www.unsw.edu.au/">UNSW</a>
+        </p>
+        <p>&copy; Mark Tanaka 2019</p> -->
+    </footer>
+
+    <!-- Hidden form to submit SVG to server, to convert it to PDF. Populated and submitted via js. -->
+    <form id="download-form" method="post" action="output.php">
+        <input type="hidden" id="dataname" name="dataname" value="out.svg">
+        <input type="hidden" id="data" name="data" value="">
+    </form>
+
+    <!-- Hidden modal to show any errors in -->
+    <div id="errorModal" class="modal hide" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h3 id="myModalLabel">There's been a problem</h3>
+        </div>
+        <div class="modal-body">
+            <p id="error-text"></p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">OK</button>
+        </div>
+    </div>
+
+    <!--<script src="js/forest.js" charset="utf-8"></script>
+    <script src="js/mst.js" charset="utf-8"></script>-->
+    <script src="js/docmgt.js" charset="utf-8"></script>
+    <script>
+        function dismissPopovers() {
+            $(".popover").hide();
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,18 @@
+FORMAT :      SMEF 1.0
+AUTHOR1 :     Peter Pan
+PUBYEAR :     2017
+TITLE :       Genotypes of residents of neverland
+SOURCE :      Imagination
+HOST :        Human
+COUNTRY :     Neverland
+RES :         A1, A2
+DATA
+ID,COUNT,SPOL,RES,NOTE
+1,1,caaaatccac,SS,NA
+2,2,acaaaaaagt,SR,NA
+3,3,tattcgaatc,RS,NA
+4,4,aatcagtcct,RR,NA
+5,5,tctataggat,S-,NA
+6,6,gcggcccgtc,-R,NA
+7,5,aatcagtcct,--,NA
+8,5,aatcagtcct,--,NA

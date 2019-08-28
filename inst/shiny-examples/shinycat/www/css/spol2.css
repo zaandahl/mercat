@@ -1,0 +1,166 @@
+body {
+  margin-left:20px;
+ 
+}
+
+.pull-left {
+  float: left;
+}
+
+.header {
+  background-color: #e6550d; /* #104077; */
+  color: white;
+  padding: 30px 0 30px 0;
+  margin-left: -20px;
+}
+.footer {
+  color: #777;
+  font-size: 88%;
+  text-align: center;
+  padding: 15px 0 1px 0;
+  margin-left: -20px;
+  margin-bottom: -40px; /* make flush with bottom */
+}
+
+.spoltab {
+  min-height: 542px;
+  position: relative; /* prevents a parentOffset warning in FF with pdf objects */
+}
+.golden {
+  height: 600px;
+}
+.viz-info {
+  padding: 10px 0 0 20px;
+  position: absolute;
+}
+.viz-info span.pop-link {
+  color: #0088cc;
+}
+.viz-info .popover {
+  width: 600px; /* override BS */
+}
+
+.viz {
+  /*margin: 20px auto 20px auto;*/
+  width: 920px;
+  height: 750px;  /* includes 2*20px extra  / was 640*/
+  border: 1px solid gray;
+  margin: 0 20px 10px 0;
+  resize:both;
+  overflow: scroll;
+}
+
+.help {
+  padding-bottom: 20px;
+  color: #888888;
+  font-size: 94%;
+}
+.subviz {
+  max-width: 920px;
+}
+
+#smefdata, #summary {
+  /*width: 940px;*/
+  margin-right: 20px;
+}
+
+.contained {
+  width: 880px;
+  padding: 20px;
+  border: 1px solid gray;
+  margin-bottom: 20px;
+}
+
+.contained-rplot {
+  width: 880px;
+  padding: 20px;
+  border: 1px solid gray;
+  margin: 0 20px 10px 0;
+  /*margin-bottom: 20px;*/
+  padding-top: 100px;
+  resize: both;
+  overflow: scroll;
+}
+
+.control-panel {
+  float: left;
+  width: 280px;
+  height: 750px;/* plus 20px padding-bottom  was 620*/
+  padding: 0 20px 20px 20px;
+  margin-bottom: 20px;
+  border: 1px solid gray;
+}
+
+text.node-label {
+  /* font: 14px sans-serif; /* included explicitly in svg statement */
+  pointer-events: none;
+}
+text.shadow { /* included explicitly in svg statement, so svg download self-contained */
+/*  stroke: white;
+  stroke-width: 2.5px;
+  opacity: 0.9;*/
+}
+
+.display span {
+  width: 80px;
+  display: inline-block;
+}
+.display span.pop-link {
+  width: auto;
+  color: #0088cc;
+  padding-left: 10px;
+}
+.display>div {
+  margin-bottom: 5px;
+}
+
+.display input[type="range"]{
+  width: 130px;
+  margin-left: 3px;
+}
+.display .slider-value {
+  margin-left: 20px;
+  width: 30px;
+}
+.display .buttons, .display input[type="submit"] {
+  margin-top: 10px;
+}
+.display input[type="checkbox"] {
+  margin: 7px 0; /* override bs */
+}
+
+div.tooltip {
+  position: absolute;
+  min-width: 60px;
+  padding: 8px;
+  font: 12px sans-serif;
+  background: #EEE;
+  border: solid 1px #aaa;
+  pointer-events: none;
+}
+div.tooltip span {
+  width: 100px;
+  display: inline-block;
+}
+div.tooltip p { margin: 4px 0 4px 0;} /* override BS */
+
+.newsection {
+  margin-top: 20px;
+}
+
+.popover {
+  max-width: 350px; /* override BS */
+}
+
+.spacer {
+  clear: both;
+}
+
+select, input[type="file"] {
+  height: 32px;  /* override BS */
+}
+
+table td, table th {
+  padding-left: 8px;
+  text-align: left;
+}

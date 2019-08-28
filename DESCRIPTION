@@ -1,0 +1,41 @@
+Package: mercat
+Type: Package
+Version: 0.3.5
+Date: 2019-08-27
+Author: R. Zach Aandahl, Sangeeta Bhatia, Natalia Vaudagnotto, Arthur Street, Andrew R. Francis, Mark M. Tanaka
+Description: Mercat can be used to investigate spoligotypes,
+   multi-locus VNTR, and other molecular data from
+   molecular epidemiology. It can also be used to
+   visualise multiple drug resistance data.
+Maintainer: Zach Aandahl <z.aandahl@unsw.edu.au>
+License: LGPL-3
+Depends: R (>= 3.3)
+Imports:
+    Cairo, 
+    dplyr,
+    forcats,
+    ggplot2,
+    ggforce,
+    ggthemes,
+    igraph,
+    jsonlite,
+    magrittr,
+    purrr,
+    reshape2,
+    rlang,
+    scales,
+    shiny,
+    shinyjs,
+    stringr,
+    tidyr,
+    tools
+LazyData: true
+Title: Molecular Epidemiology Researcher's Collection of Analytical Tools
+RoxygenNote: 6.1.1
+Encoding: UTF-8
+Suggests:
+    testthat,
+    gtools,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

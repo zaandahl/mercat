@@ -1,0 +1,281 @@
+---
+title: "mercat"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{mercat}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(mercat, quietly = TRUE)
+library(dplyr, warn.conflicts = FALSE, quietly = TRUE)
+```
+
+
+## Overview
+
+MERCAT is the Molecular Epidemiology Researcher's Collection of Analytical Tools.
+These tools are designed to analyse and visualise molecular data 
+  from bacterial isolates.
+For example it can be used to investigate spoligotypes and multi-locus VNTR data 
+  from _Mycobacterium tuberculosis_. It can also be used to visualise multiple drug resistance data.
+
+MERCAT expands and improves on an earlier online utility called spolTools, 
+which was limited to spoligotypes from _M. tuberculosis_.
+Improvements include:
+
+  * visualisation of a range of genetic markers (eg. spoligotypes, VNTRs) from any bacteria
+  * incorporation of antibiotic resistance data
+  * a minimum spanning tree depicting relationships among isolates
+  * a variety of frequency plots.
+
+Please note that the package name for MERCAT is lowercase `mercat` but we refer to the software as MERCAT.
+
+## License
+
+MERCAT is licensed under the GNU LGPL-3.0 License. This license is included with
+the package and you can view it with the following command:
+
+```
+file.show(system.file("extdata/lgpl-3.0.txt", package = "mercat"))
+```
+
+## Getting started with MERCAT
+
+To list all functions available in MERCAT use 
+
+```
+help(package = "mercat")
+```
+
+Throughout this vignette we will use a preloaded data file containing genotype data sampled 
+from tuberculosis found in 100 patients in Bolivia, 
+[Genotypes of Mycobacterium tuberculosis in patients at risk of drug resistance in Bolivia](http://www.ncbi.nlm.nih.gov/pubmed/23603419) published in 2013.
+The name of the example R data object is `monteserin`:
+
+```
+help(monteserin)
+```
+
+The class of this object is `merdata`:
+
+```{r}
+class(monteserin)
+```
+
+And you can use the S3 methods `print` and `summary` on a `merdata` object:
+
+```
+print(monteserin)
+summary(monteserin)
+```
+
+## MERCAT interactive
+
+The MERCAT R package contains a web interface written in Shiny and JavaScript.
+This interface showcases several of the MERCAT plots, allows you to upload your
+own data and has interactive D3 based network plots for a spoligoforest and minimium
+spanning tree (MST). 
+
+To try out MERCAT interactive type:
+
+```
+m_interactive()
+```
+
+## File import and export and merdata creation
+
+MERCAT supports file read and export with the Rich Spoligotype Format (RSF) and 
+the Simple Molecular Epidemological Format (SMEF). 
+
+(for RSF c.f. spolTools: online utilities for analyzing spoligotypes of the 
+_Mycobacterium tuberculosis_ complex. _Bioinformatics_.)
+
+Additionally you can create a `merdata` object inside of R.
+
+### Saving and loading SMEF and RSF files
+
+You can load from `SMEF` and `RSF` files and create `merdata` objects by using the
+`m_read` function:
+
+```
+m_read("Monteserin.smef")
+```
+
+
+You can save a `merdata` object to a file by using the `m_export` function. 
+
+```
+m_export(monteserin, "monteserin.smef")
+```
+
+We include a number of example SMEF and RSF files with the package. You can list them with:
+```{r}
+list.files(system.file("extdata/datasets", package = "mercat"))
+```
+
+And you can view a file (e.g. `Douglas.rsf`) with
+```
+file.show(system.file("extdata/datasets/Douglas.rsf", package = "mercat"))
+```
+
+### Creating a merdata object in R from two data frames
+
+You can use the function `m_create` to make a `merdata` object from two data frames. 
+One data frame contains `details` about the the `merdata` while the other data frame
+contains the marker `data`:
+
+```{r}
+m_create(
+  details = data.frame(Format = "SMEF 1.0", Author = "John Smith", pubyear = 1900), 
+  data = data.frame(
+  ID = c("1", "2", "3", "4", "5", "6", "7", "8"),
+  COUNT = c("5", "2", "3", "7", "13", "2", "9", "4"),
+  MLVA = c("25354323", "25753323", "25353322", "25353443",
+           "25553323", "25353923", "25353323", "28353323"),
+  NOTE = c("1", "1", "6", "4", "5", "6", "7", "7")
+))
+```
+
+## Aggregating merdata and summary statistics
+
+One of the powerful features of MERCAT is the ability to quickly aggregate
+molecular data from different sources. As an example we can print the `summary` 
+for the entire `monteserin` merdata object:
+
+```{r}
+summary(monteserin)$FULL
+```
+
+We know these data contain both `SPOL` and `MVLA15` types. We would like to
+aggregate so only `SPOL` data is considered:
+
+```{r}
+summary(m_aggregate(monteserin, "SPOL"))$FULL
+```
+
+The `summary` function also has marker specific summary statistic output:
+
+```{r}
+summary(monteserin)$SPOL$spacer_freq
+```
+
+The entire `summary` output is quite lengthy but contains useful information. The
+general way to access this information is `summary(<file>)$<MARKER>$<statistic>`.
+
+## Plotting merdata
+
+MERCAT includes a number of plotting functions that all use `ggplot2`. Each of
+the functions will return a `ggplot2` object that can be manipulated further 
+using standard `ggplot2` commands.
+
+### Resistance frequencies
+
+The `m_res_freq` function returns a bar graph showing the frequency of antibiotic
+drug resistance in the `merdata` object:
+
+```{r, fig.width = 7, fig.height = 4}
+m_res_freq(monteserin, orderbynames = FALSE, reverseorder = TRUE)
+```
+
+### Spoligotype frequencies
+
+You can easily make a nice spoligotype frequency plot with `m_spol_freq`:
+
+```{r, fig.width = 7, fig.height = 8}
+m_spol_freq(monteserin, label_size = 8)
+```
+
+### MLVA frequencies
+
+All of the plotting functions allow graphical customisation. Here we hide
+the values on a MLVA frequency plot and add a legend. We also change the 
+colour of the tiles:
+
+```{r, fig.width = 7, fig.height = 4.5}
+m_mlva_freq(monteserin, col_high = "darkgreen", values = FALSE, legend = TRUE)
+```
+
+### Antibiotic Drug Resistance Correlation
+
+You can plot the association between antibiotic drugs with respect to frequency
+with the function `m_res_corr_mat`. This borrows from the population genetics
+quantification of linkage disequilibrium. For further details see:
+
+Slatkin (2008). Linkage disequilibrium-understanding the evolutionary past and mapping the medical future. _Nature Reviews Genetics_, 9(6):477-485, 2008.
+
+```{r, fig.width = 5, fig.height = 4}
+m_res_corr_mat(monteserin, text_size = 5)
+m_antibiotic_full_names(c("STM", "INH", "RMP", "EMB", "PZA"))
+```
+
+## Visualising genotype and resistance data
+
+MERCAT includes two network plots for visualising genotype and resistance data: 
+`m_spolforest` and `m_mst`. Both of the plots use an underlying plotting function
+called `m_plot_graph`. Many graphical options can be configured for these plots
+and looking at the help file for `m_plot_graph` will give you an idea of how to
+tailor the plot to suit your needs.
+
+There are two functions that accompany the plots which provide detailed information
+about the nodes shown in the plots. These functions are: `m_spolforest_nodes` and
+`m_mst_nodes`. The underlying function for these is called `m_print_nodes`. 
+
+### Spoligoforests
+
+You can produce a spoligoforest combined with drug resistance genotypes:
+
+```{r, fig.width = 7, fig.height = 3} 
+m_spolforest(monteserin, node_label_size = 3, tree_seed = 4)
+```
+
+To get a data frame containing the corresponding node data use `m_spolforest_nodes` with the same
+tree_seed value:
+
+```
+m_spolforest_nodes(monteserin, tree_seed = 4)
+```
+
+If you would prefer a spoligoforest without drug resistance genotypes you can easily
+aggregate the `merdata` prior to plotting:
+
+```{r, fig.width = 7, fig.height = 3} 
+m_spolforest(monteserin %>% m_aggregate("SPOL"), node_label_size = 3, tree_seed = 4)
+```
+
+### Minimum Spanning Trees
+
+Similiar to the spoligoforest you can plot a minimum spanning tree:
+
+```{r, fig.width = 7, fig.height = 7}
+m_mst(monteserin, tree_seed = 6, plot_scale_x = 0.6, plot_scale_y = 0.6)
+```
+
+To get the data frame with corresponding node data use `m_mst_nodes` with the same
+tree_seed value:
+
+```
+m_mst_nodes(monteserin, tree_seed = 6)
+```
+
+## Credits
+The MERCAT team is RZ Aandahl, N Vaudagnotto, S Bhatia, AG Street, AR Francis, and MM Tanaka. 
+
+MERCAT interactive was developed by AG Street and RZ Aandahl.
+
+spolTools was designed by C Tang, JF Reyes, F Luciani, AR Francis, and MM Tanaka.
+
+## References
+Aandahl RZ, Bhatia S, Vaudagnotto N, Street AG, Francis AR, Tanaka MM. MERCAT: Visualising molecular epidemiology data combining genetic markers and drug resistance profiles. In preparation.
+
+Reyes JF, Francis AR, Tanaka MM. Models of deletion for visualizing bacterial variation: an application to tuberculosis spoligotypes. _BMC Bioinformatics_. 2008 Nov 27;9:496. doi: 10.1186/1471-2105-9-496.
+
+Tang C, Reyes JF, Luciani F, Francis AR, and Tanaka MM. spolTools: online utilities for analyzing spoligotypes of the _Mycobacterium tuberculosis_ complex. _Bioinformatics_. 2008 Oct 15;24(20):2414-5. Epub 2008 Aug 18.
