@@ -45,6 +45,9 @@ After you have installed devtools you can install MERCAT with the following
 commands:
 > library(devtools)
 
+> install_github("zaandahl/mercat", build_opts = c("--no-resave-data", "--no-manual"))
+
+If you do not wish to install the vignette you can use:
 > install_github("zaandahl/mercat")
 
 ## Installing MERCAT from a source tarfile
