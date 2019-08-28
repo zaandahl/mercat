@@ -38,12 +38,13 @@ any compilation errors.
 
 
 ## Installing MERCAT from GitHub
-You need the devtools package to install MERCAT from GitHub:
+You need the devtools package for R to install MERCAT from GitHub:
 > install.packages("devtools")
 
 After you have installed devtools you can install MERCAT with the following 
 commands:
 > library(devtools)
+
 > install_github("zaandahl/mercat")
 
 ## Installing MERCAT from a source tarfile
@@ -77,7 +78,7 @@ MERCAT use the following command:
 > help(smef)
 
 ## MERCAT help
-You can get a list of commands from MERCAT using the following command:
+You can get a list of commands available within MERCAT using the following command:
 > help(package = "mercat")
 
 ## The MERCAT vignette
@@ -92,9 +93,14 @@ To view the MERCAT license enter the following command:
 
 ## Contacts
 Zach Aandahl, z.aandahl@unsw.edu.au
-Mark Tanaka, m.tanaka@unsw.edu.au 
+
+Mark Tanaka, m.tanaka@unsw.edu.au
+
 Natalia Vaudagnotto, natvau@gmail.com
+
 Sangeeta Bhatia, sangeetabhatia03@gmail.com
+
 Arthur Street, arthur@racingtadpole.com 
+
 Andrew Francis, a.francis@westernsydney.edu.au
 
