@@ -7,12 +7,12 @@
 \title{SMEF: Simple Molecular Epidemiology Format}
 \description{
 SMEF, which stands for Simple Molecular Epidemiology Format, is the
-input data format for the MERCAT software
+input data format for the MERCAT software.
 It is a plain text format making it easily readable by computers and understandable by humans.
 }
 \details{
 The first section of a SMEF file is a preamble that contains information
-related to the study while the second section, which starts with the
+related to the study, while the second section, which starts with the
 heading DATA, contains the genotyping patterns and other information
 such as drug resistance phenotypes.
 An example of the first few lines of the format is as follows.
