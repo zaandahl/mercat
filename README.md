@@ -36,18 +36,23 @@ Note: you may need to install these packages *before* installing mercat from
 source. You may also need to install the packages one at a time if there are 
 any compilation errors. 
 
+If you use OS X you will need to install the latest version of XQuartz (www.xquartz.org) for
+the Cairo library (this provides printing functionality to m_interactive)
 
 ## Installing MERCAT from GitHub
 You need the devtools package for R to install MERCAT from GitHub:
 > install.packages("devtools")
 
-After you have installed devtools you can install MERCAT with the following 
-commands:
 > library(devtools)
 
-> install_github("zaandahl/mercat", build_opts = c("--no-resave-data", "--no-manual"))
+After you have installed devtools you can install MERCAT and the corresponding 
+vignette with the following commands:
 
-If you do not wish to install the vignette you can use:
+> install.packages("knitr")
+
+> install_github("zaandahl/mercat", build_vignettes = TRUE, force = TRUE)
+
+If you do not wish to install the vignette you can simply use:
 > install_github("zaandahl/mercat")
 
 ## Installing MERCAT from a source tarfile
