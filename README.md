@@ -1,5 +1,5 @@
 # MERCAT
-Molecular Epidemology Researcher's Collection of Analytical Tools
+Molecular Epidemiology Researcher's Collection of Analytical Tools
 
 MERCAT is an R package for analysing molecular epidemiological data. 
 Copyright (C) 2019 Zach Aandahl, Natalia Vaudagnotto, Sangeeta Bhatia,
