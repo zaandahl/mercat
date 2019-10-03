@@ -52,6 +52,10 @@ vignette with the following commands:
 
 > install_github("zaandahl/mercat", build_vignettes = TRUE, force = TRUE)
 
+You may need to use this alternate syntax if the vignette does not build:
+
+> install_github("zaandahl/mercat", build_opts = c("--no-resave-data", "--no-manual"), force = TRUE)
+
 If you do not wish to install the vignette you can simply use:
 > install_github("zaandahl/mercat")
 
