@@ -60,7 +60,7 @@ If you do not wish to install the vignette you can simply use:
 > install_github("zaandahl/mercat")
 
 ## Installing MERCAT from a source tarfile
-Download the latest version of MERCAT from http://www.tanakalab.unsw.edu.au/mercat/
+Download the latest version of MERCAT from http://www.tanakalab.unsw.edu.au/mercat/mercat.tar.gz
 and save the mercat.tar.gz file to an accesible location on your computer (e.g. your Desktop).
 
 Note for Mac users: You may need to right click and choose "Save as" to prevent the
