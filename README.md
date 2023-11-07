@@ -1,3 +1,5 @@
+<img src="mercat_logo_hex.png" alt="MERCAT Hex Sticker" width="200" align="right"/>
+
 # MERCAT
 Molecular Epidemiology Researcher's Collection of Analytical Tools
 
